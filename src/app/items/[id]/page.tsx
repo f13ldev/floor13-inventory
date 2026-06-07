@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddTransactionForm } from "./add-transaction-form";
+import { UploadAttachmentForm } from "./upload-attachment-form";
 
 export const dynamic = "force-dynamic";
 
@@ -112,13 +114,16 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
             ))}
           </div>
         )}
+
+        <AddTransactionForm itemId={item.id} />
       </section>
 
-      {item.attachments.length > 0 && (
-        <section className="mt-6">
-          <h2 className="font-semibold text-gray-700 mb-3">
-            Attachments ({item.attachments.length})
-          </h2>
+      <section className="mt-6">
+        <h2 className="font-semibold text-gray-700 mb-3">
+          Attachments ({item.attachments.length})
+        </h2>
+
+        {item.attachments.length > 0 && (
           <div className="space-y-2">
             {item.attachments.map((a) => (
               <a
@@ -134,8 +139,14 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
               </a>
             ))}
           </div>
-        </section>
-      )}
+        )}
+
+        {item.attachments.length === 0 && (
+          <p className="text-sm text-gray-400">No attachments yet.</p>
+        )}
+
+        <UploadAttachmentForm itemId={item.id} />
+      </section>
     </div>
   );
 }
