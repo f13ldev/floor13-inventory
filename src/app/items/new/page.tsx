@@ -8,6 +8,35 @@ export default function NewItemPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Controlled state for fields that UPC lookup can auto-fill
+  const [upc, setUpc] = useState("");
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState<"found" | "not_found" | null>(null);
+
+  async function lookupUpc() {
+    const code = upc.trim();
+    if (!code) return;
+    setLookingUp(true);
+    setLookupStatus(null);
+    try {
+      const res = await fetch(`/api/upc-lookup/${encodeURIComponent(code)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (!name) setName(data.name ?? "");
+        if (!category && data.category) setCategory(data.category);
+        setLookupStatus("found");
+      } else {
+        setLookupStatus("not_found");
+      }
+    } catch {
+      setLookupStatus("not_found");
+    } finally {
+      setLookingUp(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
@@ -15,10 +44,10 @@ export default function NewItemPage() {
 
     const form = new FormData(e.currentTarget);
     const body = {
-      name: form.get("name") as string,
-      category: form.get("category") as string,
+      name,
+      category,
       color: form.get("color") as string,
-      upc: form.get("upc") as string,
+      upc,
       serialNumber: form.get("serialNumber") as string,
       notes: form.get("notes") as string,
       transaction: {
@@ -62,6 +91,8 @@ export default function NewItemPage() {
               name="name"
               required
               type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Sony WH-1000XM5"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -76,6 +107,8 @@ export default function NewItemPage() {
                 id="category"
                 name="category"
                 type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
                 placeholder="e.g. Electronics"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -99,13 +132,41 @@ export default function NewItemPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="upc">
                 UPC / Barcode
               </label>
-              <input
-                id="upc"
-                name="upc"
-                type="text"
-                placeholder="e.g. 027242920941"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex gap-2">
+                <input
+                  id="upc"
+                  name="upc"
+                  type="text"
+                  inputMode="numeric"
+                  value={upc}
+                  onChange={(e) => {
+                    setUpc(e.target.value);
+                    setLookupStatus(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      lookupUpc();
+                    }
+                  }}
+                  placeholder="e.g. 027242920941"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={lookupUpc}
+                  disabled={!upc.trim() || lookingUp}
+                  className="shrink-0 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {lookingUp ? "…" : "Look up"}
+                </button>
+              </div>
+              {lookupStatus === "found" && (
+                <p className="mt-1 text-xs text-green-600">Details auto-filled</p>
+              )}
+              {lookupStatus === "not_found" && (
+                <p className="mt-1 text-xs text-gray-400">No match — fill in manually</p>
+              )}
             </div>
             <div>
               <label
