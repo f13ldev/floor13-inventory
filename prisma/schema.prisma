@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id           String        @id @default(cuid())
+  name         String
+  category     String?
+  color        String?
+  upc          String?
+  serialNumber String?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  attachments  Attachment[]
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  kind      String   // "acquired" | "disposed"
+  cost      Float?
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name      String
+  url       String
+  kind      String   // "receipt" | "manual" | "photo" | "other"
+  createdAt DateTime @default(now())
+}
