@@ -15,6 +15,8 @@ env:
 jobs:
   deploy:
     name: Deploy Staging
+    # Skip if Vercel secrets are not configured (Vercel GitHub App handles deploys instead)
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
