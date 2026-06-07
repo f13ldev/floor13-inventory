@@ -1,8 +1,9 @@
 name: Deploy to Staging
 
 on:
-  push:
-    branches: [main]
+  # Vercel GitHub App handles automatic deploys on push.
+  # This workflow is kept for manual CLI-based deploys only.
+  workflow_dispatch:
 
 concurrency:
   group: deploy-staging
