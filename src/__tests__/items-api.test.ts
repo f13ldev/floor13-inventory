@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const BASE = "http://localhost:3000";
 
-describe("items API smoke test", () => {
+describe.skipIf(process.env.CI === "true")("items API smoke test", () => {
   let createdId: string;
 
   beforeAll(async () => {

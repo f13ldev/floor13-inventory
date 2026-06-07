@@ -27,6 +27,6 @@
     }
   },
   "files": {
-    "ignore": [".next", "node_modules", "coverage", "dist"]
+    "ignore": [".next", "node_modules", "coverage", "dist", ".vercel"]
   }
 }
