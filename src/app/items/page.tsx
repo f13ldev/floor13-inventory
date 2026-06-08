@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SearchBar } from "../search-bar";
@@ -67,8 +67,8 @@ export default async function ItemsPage({ searchParams }: Props) {
     }),
   ]);
 
-  const categories = allCategories.map((i) => i.category!);
-  const rooms = allRooms.map((i) => i.room!);
+  const categories = allCategories.map((i) => i.category as string);
+  const rooms = allRooms.map((i) => i.room as string);
   const isFiltered = !!(searchParams.q || searchParams.category || searchParams.location);
 
   return (
@@ -122,9 +122,7 @@ export default async function ItemsPage({ searchParams }: Props) {
                     {item.category && <span>{item.category}</span>}
                     {item.color && <span>{item.color}</span>}
                     {item.upc && <span className="font-mono">UPC: {item.upc}</span>}
-                    {item.room && (
-                      <span className="text-indigo-500">📍 {item.room}</span>
-                    )}
+                    {item.room && <span className="text-indigo-500">📍 {item.room}</span>}
                   </div>
                 </div>
                 <div className="text-right text-sm text-gray-500 shrink-0 ml-4">

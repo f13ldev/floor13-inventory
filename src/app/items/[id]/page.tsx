@@ -10,8 +10,10 @@ function expirationBadge(date: Date) {
   const now = new Date();
   const daysLeft = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   if (daysLeft < 0) return { label: "Expired", cls: "bg-red-100 text-red-700" };
-  if (daysLeft <= 30) return { label: `Expires in ${daysLeft}d`, cls: "bg-orange-100 text-orange-700" };
-  if (daysLeft <= 90) return { label: `Expires in ${daysLeft}d`, cls: "bg-yellow-100 text-yellow-700" };
+  if (daysLeft <= 30)
+    return { label: `Expires in ${daysLeft}d`, cls: "bg-orange-100 text-orange-700" };
+  if (daysLeft <= 90)
+    return { label: `Expires in ${daysLeft}d`, cls: "bg-yellow-100 text-yellow-700" };
   return null;
 }
 
@@ -100,7 +102,9 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
                   {new Date(item.warrantyEndsAt).toLocaleDateString()}
                 </p>
                 {warrantyBadge && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${warrantyBadge.cls}`}>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded font-medium ${warrantyBadge.cls}`}
+                  >
                     {warrantyBadge.label}
                   </span>
                 )}
@@ -148,10 +152,16 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
                     className={`inline-block px-2 py-0.5 rounded text-xs font-medium mr-2 ${
                       tx.kind === "acquired"
                         ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        : tx.kind === "repaired"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
                     }`}
                   >
-                    {tx.kind === "acquired" ? "Acquired" : "Disposed"}
+                    {tx.kind === "acquired"
+                      ? "Acquired"
+                      : tx.kind === "repaired"
+                        ? "Repaired"
+                        : "Disposed"}
                   </span>
                   {tx.notes && <span className="text-gray-600">{tx.notes}</span>}
                 </div>

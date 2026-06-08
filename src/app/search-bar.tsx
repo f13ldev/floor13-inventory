@@ -45,9 +45,7 @@ export function SearchBar({ categories, rooms }: Props) {
   }
 
   const hasFilters =
-    !!searchParams.get("q") ||
-    !!searchParams.get("category") ||
-    !!searchParams.get("location");
+    !!searchParams.get("q") || !!searchParams.get("category") || !!searchParams.get("location");
 
   return (
     <div className="mb-6 space-y-3">
@@ -89,6 +87,7 @@ export function SearchBar({ categories, rooms }: Props) {
         )}
         {hasFilters && (
           <button
+            type="button"
             onClick={() => router.push(pathname)}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
           >

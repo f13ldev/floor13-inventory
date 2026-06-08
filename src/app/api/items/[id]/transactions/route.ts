@@ -8,8 +8,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const body = await request.json();
   const { kind, cost, date, notes } = body;
 
-  if (!kind || !["acquired", "disposed"].includes(kind)) {
-    return NextResponse.json({ error: "kind must be 'acquired' or 'disposed'" }, { status: 400 });
+  if (!kind || !["acquired", "repaired", "disposed"].includes(kind)) {
+    return NextResponse.json(
+      { error: "kind must be 'acquired', 'repaired', or 'disposed'" },
+      { status: 400 }
+    );
   }
 
   const transaction = await db.transaction.create({
