@@ -19,6 +19,7 @@
     "ci": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.102.0",
     "@prisma/client": "^5.22.0",
     "@vercel/blob": "^2.4.0",
     "bcryptjs": "^3.0.3",

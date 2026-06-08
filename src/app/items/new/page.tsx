@@ -2,18 +2,35 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { ExtractedItem } from "./receipt-extractor";
+import { ReceiptExtractor } from "./receipt-extractor";
 
 export default function NewItemPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Controlled state for fields that UPC lookup can auto-fill
-  const [upc, setUpc] = useState("");
+  // Controlled fields — receipt extractor and UPC lookup can pre-fill these
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
+  const [upc, setUpc] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [notes, setNotes] = useState("");
+  const [txCost, setTxCost] = useState("");
+  const [txDate, setTxDate] = useState(new Date().toISOString().split("T")[0]);
+  const [txNotes, setTxNotes] = useState("");
+
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupStatus, setLookupStatus] = useState<"found" | "not_found" | null>(null);
+
+  function applyExtracted(data: ExtractedItem) {
+    if (data.name) setName(data.name);
+    if (data.category) setCategory(data.category);
+    if (data.serialNumber) setSerialNumber(data.serialNumber);
+    if (data.notes) setTxNotes(data.notes);
+    if (data.cost != null) setTxCost(String(data.cost));
+    if (data.date) setTxDate(data.date);
+  }
 
   async function lookupUpc() {
     const code = upc.trim();
@@ -48,8 +65,8 @@ export default function NewItemPage() {
       category,
       color: form.get("color") as string,
       upc,
-      serialNumber: form.get("serialNumber") as string,
-      notes: form.get("notes") as string,
+      serialNumber,
+      notes,
       room: form.get("room") as string,
       shelf: form.get("shelf") as string,
       box: form.get("box") as string,
@@ -57,9 +74,9 @@ export default function NewItemPage() {
       expiresAt: (form.get("expiresAt") as string) || null,
       transaction: {
         kind: form.get("txKind") as string,
-        cost: form.get("txCost") as string,
-        date: form.get("txDate") as string,
-        notes: form.get("txNotes") as string,
+        cost: txCost,
+        date: txDate,
+        notes: txNotes,
       },
     };
 
@@ -82,6 +99,8 @@ export default function NewItemPage() {
   return (
     <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Item</h1>
+
+      <ReceiptExtractor onExtracted={applyExtracted} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
@@ -184,6 +203,8 @@ export default function NewItemPage() {
                 id="serialNumber"
                 name="serialNumber"
                 type="text"
+                value={serialNumber}
+                onChange={(e) => setSerialNumber(e.target.value)}
                 placeholder="e.g. SN123456"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -198,6 +219,8 @@ export default function NewItemPage() {
               id="notes"
               name="notes"
               rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
               placeholder="Any additional details…"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -253,7 +276,10 @@ export default function NewItemPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="warrantyEndsAt">
+              <label
+                className="block text-sm font-medium text-gray-700 mb-1"
+                htmlFor="warrantyEndsAt"
+              >
                 Warranty ends
               </label>
               <input
@@ -292,7 +318,8 @@ export default function NewItemPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="acquired">Acquired</option>
-                <option value="disposed">Disposed</option>
+                <option value="repaired">Repaired</option>
+                <option value="disposed">Sold / Disposed</option>
               </select>
             </div>
             <div>
@@ -305,6 +332,8 @@ export default function NewItemPage() {
                 type="number"
                 min="0"
                 step="0.01"
+                value={txCost}
+                onChange={(e) => setTxCost(e.target.value)}
                 placeholder="0.00"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -319,7 +348,8 @@ export default function NewItemPage() {
               id="txDate"
               name="txDate"
               type="date"
-              defaultValue={new Date().toISOString().split("T")[0]}
+              value={txDate}
+              onChange={(e) => setTxDate(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -332,6 +362,8 @@ export default function NewItemPage() {
               id="txNotes"
               name="txNotes"
               type="text"
+              value={txNotes}
+              onChange={(e) => setTxNotes(e.target.value)}
               placeholder="e.g. Bought at Best Buy"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
