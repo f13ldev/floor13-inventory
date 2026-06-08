@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   const body = await request.json();
-  const { name, category, color, upc, serialNumber, notes } = body;
+  const { name, category, color, upc, serialNumber, notes, room, box, shelf, warrantyEndsAt, expiresAt } = body;
 
   if (name !== undefined && (typeof name !== "string" || name.trim() === "")) {
     return NextResponse.json({ error: "name cannot be empty" }, { status: 400 });
@@ -30,6 +30,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       ...(upc !== undefined && { upc: upc?.trim() || null }),
       ...(serialNumber !== undefined && { serialNumber: serialNumber?.trim() || null }),
       ...(notes !== undefined && { notes: notes?.trim() || null }),
+      ...(room !== undefined && { room: room?.trim() || null }),
+      ...(box !== undefined && { box: box?.trim() || null }),
+      ...(shelf !== undefined && { shelf: shelf?.trim() || null }),
+      ...(warrantyEndsAt !== undefined && { warrantyEndsAt: warrantyEndsAt ? new Date(warrantyEndsAt) : null }),
+      ...(expiresAt !== undefined && { expiresAt: expiresAt ? new Date(expiresAt) : null }),
     },
     include: { transactions: true },
   });

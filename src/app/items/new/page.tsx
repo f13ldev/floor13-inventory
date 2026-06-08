@@ -50,6 +50,11 @@ export default function NewItemPage() {
       upc,
       serialNumber: form.get("serialNumber") as string,
       notes: form.get("notes") as string,
+      room: form.get("room") as string,
+      shelf: form.get("shelf") as string,
+      box: form.get("box") as string,
+      warrantyEndsAt: (form.get("warrantyEndsAt") as string) || null,
+      expiresAt: (form.get("expiresAt") as string) || null,
       transaction: {
         kind: form.get("txKind") as string,
         cost: form.get("txCost") as string,
@@ -196,6 +201,79 @@ export default function NewItemPage() {
               placeholder="Any additional details…"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+        </section>
+
+        <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <h2 className="font-semibold text-gray-700">Storage Location</h2>
+          <p className="text-xs text-gray-400">Where is this item kept?</p>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="room">
+                Room
+              </label>
+              <input
+                id="room"
+                name="room"
+                type="text"
+                placeholder="e.g. Garage"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="shelf">
+                Shelf
+              </label>
+              <input
+                id="shelf"
+                name="shelf"
+                type="text"
+                placeholder="e.g. Top shelf"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="box">
+                Box / Container
+              </label>
+              <input
+                id="box"
+                name="box"
+                type="text"
+                placeholder="e.g. Blue bin"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+          <h2 className="font-semibold text-gray-700">Warranty &amp; Expiration</h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="warrantyEndsAt">
+                Warranty ends
+              </label>
+              <input
+                id="warrantyEndsAt"
+                name="warrantyEndsAt"
+                type="date"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expiresAt">
+                Expiration date
+              </label>
+              <input
+                id="expiresAt"
+                name="expiresAt"
+                type="date"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
         </section>
 

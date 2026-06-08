@@ -30,6 +30,20 @@ export default async function Home() {
 
   const recentItems = items.slice(0, 6);
 
+  const now = new Date();
+  const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+  type ExpiringEntry = { item: (typeof items)[number]; date: Date; kind: "warranty" | "expiry" };
+  const expiringItems: ExpiringEntry[] = [];
+  for (const item of items) {
+    if (item.warrantyEndsAt && item.warrantyEndsAt <= in90Days) {
+      expiringItems.push({ item, date: item.warrantyEndsAt, kind: "warranty" });
+    }
+    if (item.expiresAt && item.expiresAt <= in90Days) {
+      expiringItems.push({ item, date: item.expiresAt, kind: "expiry" });
+    }
+  }
+  expiringItems.sort((a, b) => a.date.getTime() - b.date.getTime());
+
   const formatCurrency = (n: number) =>
     n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
@@ -57,6 +71,45 @@ export default async function Home() {
           <p className="text-3xl font-bold text-gray-900 mt-1">{categoryEntries.length}</p>
         </div>
       </div>
+
+      {expiringItems.length > 0 && (
+        <div>
+          <h2 className="font-semibold text-gray-700 mb-3">Upcoming expirations</h2>
+          <div className="space-y-2">
+            {expiringItems.map(({ item, date, kind }) => {
+              const daysLeft = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              const isExpired = daysLeft < 0;
+              const badgeCls = isExpired
+                ? "bg-red-100 text-red-700"
+                : daysLeft <= 30
+                  ? "bg-orange-100 text-orange-700"
+                  : "bg-yellow-100 text-yellow-700";
+              const badgeLabel = isExpired
+                ? "Expired"
+                : daysLeft === 0
+                  ? "Today"
+                  : `${daysLeft}d left`;
+              return (
+                <Link
+                  key={`${item.id}-${kind}`}
+                  href={`/items/${item.id}`}
+                  className="bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all flex items-center justify-between"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {kind === "warranty" ? "Warranty" : "Expires"} · {date.toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ml-4 ${badgeCls}`}>
+                    {badgeLabel}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl">
@@ -123,9 +176,14 @@ export default async function Home() {
                   >
                     <div>
                       <p className="font-medium text-gray-900">{item.name}</p>
-                      {item.category && (
-                        <p className="text-sm text-gray-500 mt-0.5">{item.category}</p>
-                      )}
+                      <div className="flex gap-2 text-sm text-gray-500 mt-0.5">
+                        {item.category && <span>{item.category}</span>}
+                        {(item.room || item.shelf || item.box) && (
+                          <span className="text-blue-500">
+                            📍 {[item.room, item.shelf, item.box].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right shrink-0 ml-4">
                       {acquiredCost > 0 ? (

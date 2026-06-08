@@ -6,6 +6,15 @@ import { UploadAttachmentForm } from "./upload-attachment-form";
 
 export const dynamic = "force-dynamic";
 
+function expirationBadge(date: Date) {
+  const now = new Date();
+  const daysLeft = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft < 0) return { label: "Expired", cls: "bg-red-100 text-red-700" };
+  if (daysLeft <= 30) return { label: `Expires in ${daysLeft}d`, cls: "bg-orange-100 text-orange-700" };
+  if (daysLeft <= 90) return { label: `Expires in ${daysLeft}d`, cls: "bg-yellow-100 text-yellow-700" };
+  return null;
+}
+
 export default async function ItemPage({ params }: { params: { id: string } }) {
   const item = await db.item.findUnique({
     where: { id: params.id },
@@ -20,6 +29,9 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
   const acquiredTotal = item.transactions
     .filter((t) => t.kind === "acquired" && t.cost != null)
     .reduce((sum, t) => sum + (t.cost ?? 0), 0);
+
+  const warrantyBadge = item.warrantyEndsAt ? expirationBadge(item.warrantyEndsAt) : null;
+  const expiryBadge = item.expiresAt ? expirationBadge(item.expiresAt) : null;
 
   return (
     <div className="max-w-xl mx-auto">
@@ -39,6 +51,15 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
             Edit
           </Link>
         </div>
+
+        {(item.room || item.shelf || item.box) && (
+          <div className="mt-4 flex items-center gap-2 text-sm bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+            <span className="text-blue-400">📍</span>
+            <span className="text-blue-800 font-medium">
+              {[item.room, item.shelf, item.box].filter(Boolean).join(" · ")}
+            </span>
+          </div>
+        )}
 
         <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
           {item.category && (
@@ -69,6 +90,36 @@ export default async function ItemPage({ params }: { params: { id: string } }) {
             <div>
               <span className="text-gray-500">Total paid</span>
               <p className="font-medium text-gray-900">${acquiredTotal.toFixed(2)}</p>
+            </div>
+          )}
+          {item.warrantyEndsAt && (
+            <div>
+              <span className="text-gray-500">Warranty ends</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="font-medium text-gray-900">
+                  {new Date(item.warrantyEndsAt).toLocaleDateString()}
+                </p>
+                {warrantyBadge && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${warrantyBadge.cls}`}>
+                    {warrantyBadge.label}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          {item.expiresAt && (
+            <div>
+              <span className="text-gray-500">Expires</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="font-medium text-gray-900">
+                  {new Date(item.expiresAt).toLocaleDateString()}
+                </p>
+                {expiryBadge && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${expiryBadge.cls}`}>
+                    {expiryBadge.label}
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
