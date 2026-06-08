@@ -10,11 +10,19 @@ if (!email || !password) {
   process.exit(1);
 }
 
-const hashed = await bcrypt.hash(password, 12);
-await db.user.upsert({
-  where: { email },
-  update: { password: hashed },
-  create: { email, password: hashed },
-});
-console.log(`✓ User ${email} created (or password updated).`);
-await db.$disconnect();
+async function main() {
+  const hashed = await bcrypt.hash(password, 12);
+  await db.user.upsert({
+    where: { email },
+    update: { password: hashed },
+    create: { email, password: hashed },
+  });
+  console.log(`✓ User ${email} created (or password updated).`);
+}
+
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(() => db.$disconnect());
