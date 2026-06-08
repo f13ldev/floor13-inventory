@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
+import { PortfolioValueEstimate } from "./portfolio-value-estimate";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,6 @@ export default async function Home() {
       if (tx.kind === "disposed" && tx.cost != null) totalDisposedValue += tx.cost;
     }
   }
-  const portfolioValue = totalAcquiredCost - totalDisposedValue;
-
   // Category stats
   const categoryCounts: Record<string, number> = {};
   for (const item of items) {
@@ -29,6 +28,29 @@ export default async function Home() {
   const categoryEntries = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]);
 
   const recentItems = items.slice(0, 6);
+
+  // Per-item data for AI fair-value estimate (only items with a known cost)
+  const itemsForEstimate = items
+    .map((item) => {
+      const acquiredTxs = item.transactions.filter((t) => t.kind === "acquired" && t.cost != null);
+      const acquiredCost = acquiredTxs.reduce((s, t) => s + (t.cost ?? 0), 0);
+      const firstDate =
+        acquiredTxs.length > 0
+          ? acquiredTxs.reduce(
+              (earliest, t) => (t.date < earliest ? t.date : earliest),
+              acquiredTxs[0].date
+            )
+          : null;
+      return {
+        name: item.name,
+        category: item.category,
+        upc: item.upc,
+        serialNumber: item.serialNumber,
+        acquiredCost,
+        acquiredYear: firstDate ? new Date(firstDate).getFullYear() : null,
+      };
+    })
+    .filter((i) => i.acquiredCost > 0);
 
   const now = new Date();
   const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
@@ -55,17 +77,11 @@ export default async function Home() {
           <p className="text-sm text-gray-500">Items tracked</p>
           <p className="text-3xl font-bold text-gray-900 mt-1">{items.length}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <p className="text-sm text-gray-500">Portfolio value</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">
-            {items.length > 0 ? formatCurrency(portfolioValue) : "—"}
-          </p>
-          {totalAcquiredCost > 0 && (
-            <p className="text-xs text-gray-400 mt-1">
-              {formatCurrency(totalAcquiredCost)} acquired · {formatCurrency(totalDisposedValue)} disposed
-            </p>
-          )}
-        </div>
+        <PortfolioValueEstimate
+          historicalCost={totalAcquiredCost}
+          disposedValue={totalDisposedValue}
+          items={itemsForEstimate}
+        />
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <p className="text-sm text-gray-500">Categories</p>
           <p className="text-3xl font-bold text-gray-900 mt-1">{categoryEntries.length}</p>
@@ -101,7 +117,9 @@ export default async function Home() {
                       {kind === "warranty" ? "Warranty" : "Expires"} · {date.toLocaleDateString()}
                     </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ml-4 ${badgeCls}`}>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ml-4 ${badgeCls}`}
+                  >
                     {badgeLabel}
                   </span>
                 </Link>
@@ -149,10 +167,7 @@ export default async function Home() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-gray-700">Recently added</h2>
               <div className="flex items-center gap-3">
-                <a
-                  href="/api/export/csv"
-                  className="text-xs text-gray-500 hover:text-gray-800"
-                >
+                <a href="/api/export/csv" className="text-xs text-gray-500 hover:text-gray-800">
                   ⬇ CSV
                 </a>
                 <Link href="/export/print" className="text-xs text-gray-500 hover:text-gray-800">
