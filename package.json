@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "create-user": "tsx scripts/create-user.ts",
+    "create-user": "tsx --env-file .env.local scripts/create-user.ts",
     "ci": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
